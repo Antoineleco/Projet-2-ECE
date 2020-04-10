@@ -35,6 +35,7 @@ int main() {
     Monstre mon2 = {50, 450, 50, 50,10, 2,NULL};
     Monstre mon3 = {100, 450, 50, 50,10, 2,NULL};
     int isEnd = 0;
+    int temps = 0;
 
 
     assert (al_init());
