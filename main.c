@@ -6,37 +6,17 @@
 #include <time.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
-#include "fonctions.h"
+#include "menutours.h"
 
 
 int main() {
-    ALLEGRO_DISPLAY *display = NULL;
-    ALLEGRO_EVENT_QUEUE *queue = NULL;
-    ALLEGRO_TIMER *timer = NULL;
-    ALLEGRO_EVENT event = {0};
-    ALLEGRO_MOUSE_STATE mouse_state;
-    ALLEGRO_KEYBOARD_STATE keyboard_state;
-    clock_t start, stop,reset1,reset2;
-    Joueur joueur[1];
-    Tour tourelle[10];
-    Monstre monstre[50];
-    Tour tourdegel[10];
-    creermonstre(monstre);
-    creertourelle(tourelle);
-    creertourdegel(tourdegel);
-    initialiserjoueur(joueur);
+    creermonstre();
+    creerarcher();
+    creersorcierdeglace();
+    creerbomber();
+    initialiserjoueur();
 
 
-    bool isEnd = 0;
-    bool pause = 1;
-    bool quittermenu = 0;
-    bool poser = 0;
-    int vit0 = 0;
-    int vit2 = 0;
-    int vit1 = 1;
-    int a = 0;
-    int queltour=0;
-    int degat =0;
     al_init_font_addon();
     al_init_ttf_addon();
 
@@ -58,16 +38,7 @@ int main() {
     queue = al_create_event_queue();
     assert (queue);
 
-for (int i=0; i<10; i++){
-    tourelle[i].imagetour1 = al_load_bitmap("../tourelle.PNG");
-    tourdegel[i].imagetour1 = al_load_bitmap("../tourdegel.PNG");
-}
-for (int i=0; i<50; i++){
-    monstre[i].imagemonstre1 = al_load_bitmap("../monstre1.PNG");
-    monstre[i].imagemonstre2 = al_load_bitmap("../monstre2.PNG");
-    monstre[i].imagemonstre3 = al_load_bitmap("../monstre3.PNG");
-}
-
+chargerimages();
 
     al_register_event_source(queue, al_get_display_event_source(display));
     al_register_event_source(queue, al_get_keyboard_event_source());
@@ -77,8 +48,11 @@ for (int i=0; i<50; i++){
     robotoRegular40 = al_load_font("../Roboto-Regular.TTF", 20, 0);
     robotoRegular50 = al_load_font("../Roboto-Regular.TTF", 100, 0);
 
-    toutdessiner1(tourelle, tourdegel, monstre);
+    toutdessiner1();
+    al_flip_display();
     reset1 = clock();
+    vit1 =1;
+    pause = 1;
     while (!isEnd) {
         al_wait_for_event(queue, &event);
         al_start_timer(timer);
@@ -88,105 +62,16 @@ for (int i=0; i<50; i++){
         }
         if (event.type == ALLEGRO_EVENT_KEY_DOWN) {
             if (event.keyboard.keycode == ALLEGRO_KEY_P) {
-                pause = 1;
-                quittermenu = 0;
-                poser = 0;
-                al_draw_bitmap(al_load_bitmap("../menutour.PNG"),-15,-20,0);
-                al_flip_display();
-                while (!quittermenu) {
-                    al_get_keyboard_state(&keyboard_state);
-                    al_get_mouse_state(&mouse_state);
-                    al_stop_timer(timer);
-                    if (al_key_down(&keyboard_state,ALLEGRO_KEY_ESCAPE)) {
-                        quittermenu = 1;
-                    }
-                    if (mouse_state.buttons & 1) {
-                        if (mouse_state.x < 1000) {
-                            if (joueur[0].or > 30) {
-                                start =clock();
-                                while (!poser) {
-                                    stop =clock();
-                                    al_get_mouse_state(&mouse_state);
-                                    toutdessiner1(tourelle, tourdegel, monstre);
-                                    al_flip_display();
-                                    if (queltour>9) {
-                                        al_draw_text(robotoRegular50, al_map_rgb(255, 255, 255), 550, 300, ALLEGRO_ALIGN_CENTER,
-                                                     "Plus de tour d'archers disponible");
-                                        al_flip_display();
-                                        if ((stop - start) / CLOCKS_PER_SEC == 2) {
-                                            quittermenu = 1;
-                                            pause = 0;
-                                            poser = 1;
-                                        }
-                                    }
-                                    else if (mouse_state.buttons & 2) {
-                                        tourelle[queltour].xt = mouse_state.x;
-                                        tourelle[queltour].yt = mouse_state.y;
-                                        quittermenu = 1;
-                                        pause = 0;
-                                        joueur[0].or -= tourelle[queltour].cout;
-                                        poser = 1;
-                                        queltour+=1;
-                                    }
-                                }
-                            } else if (joueur[0].or < 30) {
-                                start = clock();
-                                while (!poser) {
-                                    stop = clock();
-                                    al_get_mouse_state(&mouse_state);
-                                    al_draw_text(robotoRegular50, al_map_rgb(255, 255, 255), 550, 300, 0,
-                                                 "Pas assez d'argent");
-                                    al_flip_display();
-                                    if ((stop - start) / CLOCKS_PER_SEC == 2) {
-                                        quittermenu = 1;
-                                        pause = 0;
-                                        poser = 1;
-                                    }
-                                }
-                            }
-                        } else if (mouse_state.x > 1000) {
-                            if (joueur[0].or > 50) {
-                                while (!poser) {
-                                    al_get_mouse_state(&mouse_state);
-                                    toutdessiner1(tourelle, tourdegel, monstre);
-                                    al_flip_display();
-                                    if (mouse_state.buttons & 2) {
-                                        tourdegel[0].xt = mouse_state.x;
-                                        tourdegel[0].yt = mouse_state.y;
-                                        quittermenu = 1;
-                                        pause = 0;
-                                        joueur[0].or -= 50;
-                                        poser = 1;
-                                    }
-                                }
-                            } else if (joueur[0].or < 50) {
-                                start = clock();
-                                while (!poser) {
-                                    stop = clock();
-                                    al_get_mouse_state(&mouse_state);
-                                    al_draw_text(robotoRegular50, al_map_rgb(255, 255, 255), 550, 300, 0,
-                                                 "Pas assez d'argent");
-                                    al_flip_display();
-                                    if ((stop - start) / CLOCKS_PER_SEC == 2) {
-                                        poser = 1;
-                                        quittermenu = 1;
-                                        pause = 0;
-                                        poser = 1;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                menutours();
             }
             if (event.keyboard.keycode == ALLEGRO_KEY_LEFT) {
                 if (!vit1) {
-                    vitessenormale(tourelle, tourdegel,monstre);
+                    vitessenormale();
                     vit1 = 1;
                     vit2 = 0;
                     vit0 = 0;
                 } else {
-                    vitesselente(tourelle, tourdegel,monstre);
+                    vitesselente();
                     vit0 = 1;
                     vit1 = 0;
                     vit2 = 0;
@@ -194,12 +79,12 @@ for (int i=0; i<50; i++){
             }
             if (event.keyboard.keycode == ALLEGRO_KEY_RIGHT) {
                 if (!vit1) {
-                    vitessenormale(tourelle, tourdegel,monstre);
+                    vitessenormale();
                     vit1 = 1;
                     vit2 = 0;
                     vit0 = 0;
                 } else {
-                    vitesserapide(tourelle,tourdegel,monstre);
+                    vitesserapide();
                     vit0 = 0;
                     vit1 = 0;
                     vit2 = 1;
@@ -216,46 +101,34 @@ for (int i=0; i<50; i++){
 
         if (event.type == ALLEGRO_EVENT_TIMER) {
             if (!pause) {
-                reset2=clock();
-                if (vit0==1) {
-                    if (((reset1 - reset2) / CLOCKS_PER_SEC) % 4 == 0) {
-                        for (int i = 0; i < 50; i++) {
-                            monstre[i].gel = 0;
-                        }
-                    }
-                }
-                if (vit1==1) {
-                    if (((reset1 - reset2) / CLOCKS_PER_SEC) % 2 == 0) {
-                        for (int i = 0; i < 50; i++) {
-                            monstre[i].gel = 0;
-                        }
-                    }
-                }
-                if (vit2==1) {
-                    if (((reset1 - reset2) / CLOCKS_PER_SEC) % 1 == 0) {
-                        for (int i = 0; i < 50; i++) {
-                            monstre[i].gel = 0;
-                        }
-                    }
+                for (int i=0; i<50; i++){
+                    monstre[i].gel =0;
                 }
                 // deplacement des monstres et dégats
-                degattourdegel(tourdegel, monstre);
-                deplacementmonstre(monstre, vit0, vit1, vit2, joueur);
-                degattourelle(tourelle, monstre, degat);
+                degatssorcierdeglace();
+                degatsarcher();
+                degatsbomber();
+                vague1();
+                if (monstre[19].hp <=0){
+                    vague2();
+                }
             }
 
             //Dessins
-            if (a <= 20) {
-                toutdessiner1(tourelle, tourdegel, monstre);
-                a += 1;
-            } else if (a >= 60 || (40 >= a && a > 20)) {
-                toutdessiner3(tourelle, tourdegel, monstre);
-                if (a >= 40) {
+            if (!pause) {
+                if (a <= 10) {
+                    toutdessiner1();
+                    al_flip_display();
+                    a++;
+                } else if (a <= 20) {
+                    toutdessiner2();
+                    al_flip_display();
+                    a++;
+                } else {
                     a = 1;
-                } else a += 1;
-            } else {
-                toutdessiner2(tourelle, tourdegel, monstre);
-                a += 1;
+                    toutdessiner1();
+                    al_flip_display();
+                }
             }
         }
     }
