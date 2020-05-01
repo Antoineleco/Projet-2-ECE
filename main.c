@@ -6,17 +6,17 @@
 #include <time.h>
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_ttf.h>
-#include "menutours.h"
+#include "fonctions.h"
 
 
 int main() {
+
     creermonstre();
     creerarcher();
     creersorcierdeglace();
     creerbomber();
+    creerdragon();
     initialiserjoueur();
-
-
     al_init_font_addon();
     al_init_ttf_addon();
 
@@ -28,113 +28,101 @@ int main() {
     assert (al_init_primitives_addon());
 
     al_set_new_display_flags(ALLEGRO_RESIZABLE);
-    display = al_create_display(1900, 1000);
+
+    display = al_create_display(1000, 1000);
     assert (display);
     al_set_window_title(display, "Tower defense");
 
-    timer = al_create_timer(2.0 / 60);
-    assert (timer);
+    timermenu = al_create_timer(1);
+    assert (timermenu);
 
-    queue = al_create_event_queue();
-    assert (queue);
+    queuemenu = al_create_event_queue();
+    assert (queuemenu);
 
-chargerimages();
+    al_register_event_source(queuemenu, al_get_display_event_source(display));
+    al_register_event_source(queuemenu, al_get_keyboard_event_source());
+    al_register_event_source(queuemenu, al_get_mouse_event_source());
+    al_register_event_source(queuemenu, al_get_timer_event_source(timermenu));
 
-    al_register_event_source(queue, al_get_display_event_source(display));
-    al_register_event_source(queue, al_get_keyboard_event_source());
-    al_register_event_source(queue, al_get_mouse_event_source());
-    al_register_event_source(queue, al_get_timer_event_source(timer));
+    fond.fondmenuprincipal = al_load_bitmap("../fondaccueil.PNG");
+    fond.regles = al_load_bitmap("../règles.PNG");
+    isEnd =0;
 
     robotoRegular40 = al_load_font("../Roboto-Regular.TTF", 20, 0);
     robotoRegular50 = al_load_font("../Roboto-Regular.TTF", 100, 0);
 
-    toutdessiner1();
+    al_start_timer(timermenu);
+    al_draw_bitmap(fond.fondmenuprincipal,0,0,0);
     al_flip_display();
-    reset1 = clock();
-    vit1 =1;
-    pause = 1;
+    lvl1=0;
+    lvl2=0;
+    lvl3 =1;
+
     while (!isEnd) {
-        al_wait_for_event(queue, &event);
-        al_start_timer(timer);
+        al_draw_bitmap(fond.fondmenuprincipal, 0, 0, 0);
+        al_flip_display();
+        al_wait_for_event(queuemenu, &eventmenu);
+        al_get_mouse_state(&mouse_state);
 
-        if (event.type == ALLEGRO_EVENT_DISPLAY_CLOSE) {
-            isEnd = 1;
-        }
-        if (event.type == ALLEGRO_EVENT_KEY_DOWN) {
-            if (event.keyboard.keycode == ALLEGRO_KEY_P) {
-                menutours();
-            }
-            if (event.keyboard.keycode == ALLEGRO_KEY_LEFT) {
-                if (!vit1) {
-                    vitessenormale();
-                    vit1 = 1;
-                    vit2 = 0;
-                    vit0 = 0;
-                } else {
-                    vitesselente();
-                    vit0 = 1;
-                    vit1 = 0;
-                    vit2 = 0;
-                }
-            }
-            if (event.keyboard.keycode == ALLEGRO_KEY_RIGHT) {
-                if (!vit1) {
-                    vitessenormale();
-                    vit1 = 1;
-                    vit2 = 0;
-                    vit0 = 0;
-                } else {
-                    vitesserapide();
-                    vit0 = 0;
-                    vit1 = 0;
-                    vit2 = 1;
-                }
-            }
-            if (event.keyboard.keycode == ALLEGRO_KEY_SPACE){
-                if(!pause){
-                    pause =1;
-                }else{
-                    pause =0;
-                }
-            }
-        }
+        switch (eventmenu.type) {
+            case ALLEGRO_EVENT_TIMER:
+                al_draw_bitmap(fond.fondmenuprincipal, 0, 0, 0);
+                break;
+            case ALLEGRO_EVENT_DISPLAY_CLOSE:
+                isEnd = 1;
+                break;
+            case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN :
 
-        if (event.type == ALLEGRO_EVENT_TIMER) {
-            if (!pause) {
-                for (int i=0; i<50; i++){
-                    monstre[i].gel =0;
+                //QUIT
+                if (mouse_state.x >= 250.75 && mouse_state.x <= 752.25 && mouse_state.y >= 725.59 &&
+                    mouse_state.y <= 870.71) {
+                    isEnd = 1;
                 }
-                // deplacement des monstres et dégats
-                degatssorcierdeglace();
-                degatsarcher();
-                degatsbomber();
-                vague1();
-                if (monstre[19].hp <=0){
-                    vague2();
+                //PLAY NEW GAME
+                if (mouse_state.x >= 250.75 && mouse_state.x <= 752.25 && mouse_state.y >= 118.73 &&
+                    mouse_state.y <= 270.45) {
+                    lvl1=1;
+                    lvl2=0;
+                    lvl3=0;
+                    niveau();
                 }
-            }
+                //PLAY CONTINUE
+                if (mouse_state.x >= 250.75 && mouse_state.x <= 752.25 && mouse_state.y >= 323.22 &&
+                    mouse_state.y <= 468.34) {
+                    if (lvl2) {
+                        niveau();
+                    } else if (lvl3) {
+                        niveau();
+                    } else {
+                        start = clock();
+                        while (!poser) {
+                            stop = clock();
+                            al_draw_text(robotoRegular40, al_map_rgb(255, 50, 50), 380, 280, 0,
+                                         "Aucune partie commencée");
+                            al_flip_display();
+                            if ((stop - start) / CLOCKS_PER_SEC == 2) {
+                                poser = 1;
+                            }
+                        }
+                    }
+                }
 
-            //Dessins
-            if (!pause) {
-                if (a <= 10) {
-                    toutdessiner1();
-                    al_flip_display();
-                    a++;
-                } else if (a <= 20) {
-                    toutdessiner2();
-                    al_flip_display();
-                    a++;
-                } else {
-                    a = 1;
-                    toutdessiner1();
-                    al_flip_display();
+                //RULES
+                if (mouse_state.x >= 250.75 && mouse_state.x <= 752.25 && mouse_state.y >= 521.12 &&
+                    mouse_state.y <= 672.82) {
+                    afficherregles();
                 }
-            }
+                break;
         }
     }
 
-    al_destroy_display(display);
-    al_destroy_timer(timer);
+    al_destroy_event_queue(queuemenu);
     al_destroy_event_queue(queue);
+    al_destroy_event_queue(queueregles);
+    al_destroy_display(display);
+    al_destroy_timer(timermenu);
+    al_destroy_timer(timer);
+
+
     return 0;
 }

@@ -1,0 +1,79 @@
+int main() {
+
+    al_init_font_addon();
+    al_init_ttf_addon();
+
+    assert (al_init());
+    assert (al_install_mouse());
+    assert(al_init_image_addon());
+    assert (al_install_keyboard());
+    assert (al_create_event_queue());
+    assert (al_init_primitives_addon());
+
+    displaymenu = al_create_display(1000, 1000);
+    assert (displaymenu);
+    al_set_window_title(displaymenu, "Tower defense");
+
+    timermenu = al_create_timer(0.1);
+    assert (timermenu);
+
+    queuemenu = al_create_event_queue();
+    assert (queuemenu);
+
+    al_register_event_source(queuemenu, al_get_display_event_source(displaymenu));
+    al_register_event_source(queuemenu, al_get_keyboard_event_source());
+    al_register_event_source(queuemenu, al_get_mouse_event_source());
+    al_register_event_source(queuemenu, al_get_timer_event_source(timermenu));
+
+    al_start_timer(timermenu);
+    al_draw_bitmap(fond.fondmenuprincipal,0,0,0);
+    al_flip_display();
+
+    while (!isEnd) {
+        al_wait_for_event(queuemenu, &eventmenu);
+        al_get_mouse_state(&mouse_state);
+
+        switch (eventmenu.type) {
+            case ALLEGRO_EVENT_TIMER:
+                al_draw_bitmap(fond.fondmenuprincipal,0,0,0);
+                break;
+            case ALLEGRO_EVENT_DISPLAY_CLOSE:
+                isEnd = 1;
+                break;
+            case ALLEGRO_EVENT_KEY_DOWN:
+                if (event.keyboard.keycode == ALLEGRO_KEY_ESCAPE) {
+                    isEnd = 1;
+                }
+                break;
+            case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN :
+                //QUIT
+                if (mouse_state.x >= 250.75 && mouse_state.x <= 752.25 && mouse_state.y >= 725.59 &&
+                    mouse_state.y <= 870.71) {
+                    isEnd = 1;
+                }
+                //PLAY NEW GAME
+                if (mouse_state.x >= 250.75 && mouse_state.x <= 752.25 && mouse_state.y >= 118.73 &&
+                    mouse_state.y <= 270.45) {
+                    lvl1=1;
+                    lvl2=0;
+                    lvl3=0;
+                    niveau();
+                }
+                //PLAY CONTINUE
+                if (mouse_state.x >= 250.75 && mouse_state.x <= 752.25 && mouse_state.y >= 323.22 &&
+                    mouse_state.y <= 468.34) {
+                    niveau();
+                }
+                //RULES
+                if (mouse_state.x >= 250.75 && mouse_state.x <= 752.25 && mouse_state.y >= 521.12 &&
+                    mouse_state.y <= 672.82) {
+                }
+                break;
+        }
+    }
+    al_destroy_display(displaymenu);
+    al_destroy_event_queue(queuemenu);
+    al_destroy_display(display);
+    al_destroy_timer(timer);
+    al_destroy_event_queue(queue);
+    return 0;
